@@ -85,9 +85,10 @@
         Return False
     End Function
 
+    ''event functions and keys
     Private Sub Timer1_Tick(sender As Object, e As EventArgs) Handles Timer1.Tick
         Count += 1
-        If Count > 10 Then
+        If Count > 5 Then
             TempTetro.YPos += 1
             Count = 0
         End If
@@ -96,5 +97,18 @@
         '    TempTetro.CurrentRot = CRot.ZERO
         'End If
         PictureBox1.Refresh()
+    End Sub
+
+    Private Sub Form1_KeyDown(sender As Object, e As KeyEventArgs) Handles MyBase.KeyDown
+        If e.KeyCode = Keys.D Then
+            TempTetro.XPos += 1
+        ElseIf e.KeyCode = Keys.A Then
+            TempTetro.XPos -= 1
+        ElseIf e.KeyCode = keys.W Then
+            TempTetro.CurrentRot += 1
+            If TempTetro.CurrentRot > CRot.THREEFOURTHS Then
+                TempTetro.CurrentRot = CRot.ZERO
+            End If
+        End If
     End Sub
 End Class
