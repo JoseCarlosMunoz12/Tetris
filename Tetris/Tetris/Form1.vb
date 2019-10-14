@@ -18,13 +18,26 @@
         End Sub
     End Structure
     Dim TempTetro As TetroID
+    Dim AllTetros As New List(Of Integer())
+    Dim TimerCountFall As Integer = 0
+    Dim Count As Integer = 0
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        ''All tetronimos
+        AllTetros.Add({1, 5, 9, 13})  ''Long Item
+        AllTetros.Add({8, 9, 5, 6})   ''Cross to left
+        AllTetros.Add({5, 6, 10, 11}) ''Cross to  Right
+        AllTetros.Add({5, 6, 9, 10})  ''Square
+        AllTetros.Add({1, 5, 9, 10})  ''Left to right
+        AllTetros.Add({2, 6, 10, 9})  ''Left to Left
+        AllTetros.Add({5, 8, 9, 10})  ''T Item
+
         TempTetro = New TetroID With {
-                  .TetroCodes = {1, 5, 9, 13},
-                  .XPos = 4,
-                  .YPos = 4}
+                  .TetroCodes = AllTetros(6),
+                  .XPos = 3,
+                  .YPos = 0}
         TempTetro.InitRor(Color.Yellow)
+        Timer1.Enabled = True
     End Sub
     ''draw items and functions
     Private Sub PictureBox1_Paint(sender As Object, e As PaintEventArgs) Handles PictureBox1.Paint
@@ -39,15 +52,20 @@
                 DrawInfo.DrawRectangle(Outline, jj * DimensionOfCubes, ii * DimensionOfCubes, DimensionOfCubes, DimensionOfCubes)
             Next
         Next
-        DrawTetrominos(0, 0, DrawInfo, TempTetro, DimensionOfCubes)
+        DrawTetrominos(TempTetro.YPos * DimensionOfCubes,
+                       TempTetro.XPos * DimensionOfCubes,
+                       DrawInfo, TempTetro, DimensionOfCubes)
     End Sub
     '' Determine Tetro location
-    Private Sub DrawTetrominos(XPos As Single, YPos As Single, e As Graphics, TetroToDrw As TetroID, Dimension As Single)
+    Private Sub DrawTetrominos(YPos As Single, XPos As Single, e As Graphics, TetroToDrw As TetroID, Dimension As Single)
         For ii = 0 To 3
             For jj = 0 To 3
                 For Each item In TetroToDrw.TetroCodes
                     If DrawItem(jj, ii, item, TetroToDrw.CurrentRot) Then
-                        e.FillRectangle(TetroToDrw.TetroColor, YPos + jj * Dimension, XPos + ii * Dimension, Dimension, Dimension)
+                        Dim Br As SolidBrush = New SolidBrush(Color.Gray)
+                        Dim Outline As Pen = New Pen(Br)
+                        e.FillRectangle(TetroToDrw.TetroColor, XPos + jj * Dimension, YPos + ii * Dimension, Dimension, Dimension)
+                        e.DrawRectangle(Outline, XPos + jj * Dimension, YPos + ii * Dimension, Dimension, Dimension)
                     End If
                 Next
             Next
@@ -67,12 +85,16 @@
         Return False
     End Function
 
-    Private Sub PictureBox1_Click(sender As Object, e As EventArgs) Handles PictureBox1.Click
-        TempTetro.CurrentRot += 1
-        If TempTetro.CurrentRot > CRot.THREEFOURTHS Then
-            TempTetro.CurrentRot = CRot.ZERO
+    Private Sub Timer1_Tick(sender As Object, e As EventArgs) Handles Timer1.Tick
+        Count += 1
+        If Count > 10 Then
+            TempTetro.YPos += 1
+            Count = 0
         End If
+        'TempTetro.CurrentRot += 1
+        'If TempTetro.CurrentRot > CRot.THREEFOURTHS Then
+        '    TempTetro.CurrentRot = CRot.ZERO
+        'End If
         PictureBox1.Refresh()
     End Sub
-
 End Class
