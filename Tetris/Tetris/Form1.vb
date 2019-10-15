@@ -19,10 +19,15 @@
     End Structure
     Dim TempTetro As TetroID
     Dim AllTetros As New List(Of Integer())
+    Dim AllTetColo As Color() = {Color.Blue, Color.Green, Color.Red, Color.Purple, Color.Yellow, Color.Pink, Color.Brown}
     Dim TimerCountFall As Integer = 0
-    Dim Count As Integer = 0
-
+    Dim Count As Integer = 1
+    Dim DimensionOfCubes As Single
+    Dim CubeForHeight As Integer
+    Dim Rand As New Random
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        DimensionOfCubes = (PictureBox1.Width - 1) / 10
+        CubeForHeight = PictureBox1.Height / DimensionOfCubes
         ''All tetronimos
         AllTetros.Add({1, 5, 9, 13})  ''Long Item
         AllTetros.Add({8, 9, 5, 6})   ''Cross to left
@@ -32,19 +37,17 @@
         AllTetros.Add({2, 6, 10, 9})  ''Left to Left
         AllTetros.Add({5, 8, 9, 10})  ''T Item
 
+        Dim RandNum As Integer = Rand.Next(0, 1500)
         TempTetro = New TetroID With {
-                  .TetroCodes = AllTetros(6),
+                  .TetroCodes = AllTetros(RandNum Mod 7),
                   .XPos = 3,
                   .YPos = 0}
-        TempTetro.InitRor(Color.Yellow)
+        TempTetro.InitRor(AllTetColo(RandNum Mod 7))
         Timer1.Enabled = True
     End Sub
     ''draw items and functions
     Private Sub PictureBox1_Paint(sender As Object, e As PaintEventArgs) Handles PictureBox1.Paint
-        Dim DimensionOfCubes As Single = (PictureBox1.Width - 1) / 10
-        Dim CubeForHeight As Integer = PictureBox1.Height / DimensionOfCubes
         Dim DrawInfo As Graphics = e.Graphics
-
         For ii = 0 To CubeForHeight - 1
             For jj = 0 To 10
                 Dim Br As SolidBrush = New SolidBrush(Color.Gray)
@@ -84,18 +87,31 @@
         End Select
         Return False
     End Function
-
+    Private Function CollsionCheck(Tetroinfo As TetroID) As Boolean
+        For ii = 0 To 3
+            For jj = 0 To 3
+                For Each item In Tetroinfo.TetroCodes
+                    If DrawItem(jj, ii, item, Tetroinfo.CurrentRot) Then
+                        If CubeForHeight = (ii + TempTetro.YPos) Then
+                            Return True
+                        End If
+                    End If
+                Next
+            Next
+        Next
+        Return False
+    End Function
     ''event functions and keys
     Private Sub Timer1_Tick(sender As Object, e As EventArgs) Handles Timer1.Tick
-        Count += 1
-        If Count > 5 Then
-            TempTetro.YPos += 1
-            Count = 0
+        TempTetro.YPos += Count
+        If CollsionCheck(TempTetro) Then
+            Dim RandNum As Integer = Rand.Next(0, 1500)
+            TempTetro = New TetroID With {
+                  .TetroCodes = AllTetros(RandNum Mod 7),
+                  .XPos = 3,
+                  .YPos = 0}
+            TempTetro.InitRor(AllTetColo(RandNum Mod 7))
         End If
-        'TempTetro.CurrentRot += 1
-        'If TempTetro.CurrentRot > CRot.THREEFOURTHS Then
-        '    TempTetro.CurrentRot = CRot.ZERO
-        'End If
         PictureBox1.Refresh()
     End Sub
 
@@ -104,11 +120,14 @@
             TempTetro.XPos += 1
         ElseIf e.KeyCode = Keys.A Then
             TempTetro.XPos -= 1
-        ElseIf e.KeyCode = keys.W Then
+        ElseIf e.KeyCode = Keys.W Then
             TempTetro.CurrentRot += 1
             If TempTetro.CurrentRot > CRot.THREEFOURTHS Then
                 TempTetro.CurrentRot = CRot.ZERO
             End If
+        ElseIf e.KeyCode = Keys.S Then
+            Count = 2
         End If
+
     End Sub
 End Class
