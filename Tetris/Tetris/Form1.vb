@@ -23,9 +23,14 @@
             TetroColor = New SolidBrush(ChosenColor)
         End Sub
     End Structure
-
+    Structure CubeInfo
+        Dim Xpos As Single
+        Dim Ypos As Single
+        Dim TetroColor As SolidBrush
+    End Structure
     Dim TempTetro As TetroID
     Dim AllTetros As New List(Of Integer())
+    Dim AllStacks As New List(Of CubeInfo)
     Dim AllTetColo As Color() = {Color.Blue, Color.Green, Color.Red, Color.Purple, Color.Yellow, Color.Pink, Color.Brown}
     Dim TimerCountFall As Integer = 0
     Dim Count As Integer = 1
@@ -107,10 +112,19 @@
             For jj = 0 To 3
                 For Each item In Tetroinfo.TetroCodes
                     If DrawItem(jj, ii, item, Tetroinfo.CurrentRot) Then
-                        AllCols(0) = jj + Tetroinfo.XPos < 1
+                        AllCols(0) = jj + Tetroinfo.XPos < 0
                         AllCols(1) = jj + Tetroinfo.XPos > 9
                         AllCols(2) = CubeForHeight = (ii + TempTetro.YPos)
-                        AllCols(3) = False
+                        If AllStacks.Count = 0 Then
+                            AllCols(3) = False
+                        Else
+                            For Each Cube In AllStacks
+                                AllCols(3) = Cube.Xpos = jj + TempTetro.XPos And TempTetro.YPos = ii + TempTetro.YPos
+                                If AllCols(3) Then
+                                    Return AllCols
+                                End If
+                            Next
+                        End If
                         For Each pos In AllCols
                             If pos Then
                                 Return AllCols
@@ -124,7 +138,7 @@
     End Function
     ''event functions and keys
     Private Sub Timer1_Tick(sender As Object, e As EventArgs) Handles Timer1.Tick
-        'TempTetro.YPos += Count
+        TempTetro.YPos += Count
         Dim ColTest() As Boolean = CollsionCheck(TempTetro)
 
         If ColTest(0) Then
