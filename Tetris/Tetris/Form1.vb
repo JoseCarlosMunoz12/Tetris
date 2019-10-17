@@ -1,5 +1,11 @@
 ﻿Public Class Form1
     Dim rnd As New Random
+    Public Enum Collisions
+        GROUND
+        BORDER_LEFT
+        BORDER_RIGHT
+        TETRO_STACKS
+    End Enum
     Public Enum CRot
         ZERO
         QUARTER
@@ -17,11 +23,13 @@
             TetroColor = New SolidBrush(ChosenColor)
         End Sub
     End Structure
+
     Dim TempTetro As TetroID
     Dim AllTetros As New List(Of Integer())
     Dim AllTetColo As Color() = {Color.Blue, Color.Green, Color.Red, Color.Purple, Color.Yellow, Color.Pink, Color.Brown}
     Dim TimerCountFall As Integer = 0
     Dim Count As Integer = 1
+    Dim PrevTetro As Integer = 0
     Dim DimensionOfCubes As Single
     Dim CubeForHeight As Integer
     Dim Rand As New Random
@@ -38,11 +46,17 @@
         AllTetros.Add({5, 8, 9, 10})  ''T Item
 
         Dim RandNum As Integer = Rand.Next(0, 1500)
+        Dim Val As Integer = RandNum Mod 7
+        Do Until Not Val = PrevTetro
+            RandNum = Rand.Next(0, 1500)
+            Val = RandNum Mod 7
+        Loop
+        PrevTetro = Val
         TempTetro = New TetroID With {
-                  .TetroCodes = AllTetros(RandNum Mod 7),
+                  .TetroCodes = AllTetros(Val),
                   .XPos = 3,
                   .YPos = 0}
-        TempTetro.InitRor(AllTetColo(RandNum Mod 7))
+        TempTetro.InitRor(AllTetColo(Val))
         Timer1.Enabled = True
     End Sub
     ''draw items and functions
@@ -87,14 +101,27 @@
         End Select
         Return False
     End Function
-    Private Function CollsionCheck(Tetroinfo As TetroID) As Boolean
+    Private Function CollsionCheck(Tetroinfo As TetroID, Optional ColType As Collisions = Collisions.GROUND) As Boolean
         For ii = 0 To 3
             For jj = 0 To 3
                 For Each item In Tetroinfo.TetroCodes
                     If DrawItem(jj, ii, item, Tetroinfo.CurrentRot) Then
-                        If CubeForHeight = (ii + TempTetro.YPos) Then
-                            Return True
-                        End If
+                        Select Case ColType
+                            Case Collisions.GROUND
+                                If CubeForHeight = (ii + TempTetro.YPos) Then
+                                    Return True
+                                End If
+                            Case Collisions.BORDER_LEFT
+                                If jj + Tetroinfo.XPos < 0 Then
+                                    Return True
+                                End If
+                            Case Collisions.BORDER_RIGHT
+                                If jj + Tetroinfo.XPos > 9 Then
+                                    Return True
+                                End If
+                            Case Collisions.TETRO_STACKS
+
+                        End Select
                     End If
                 Next
             Next
@@ -103,31 +130,49 @@
     End Function
     ''event functions and keys
     Private Sub Timer1_Tick(sender As Object, e As EventArgs) Handles Timer1.Tick
-        TempTetro.YPos += Count
+        'TempTetro.YPos += Count
+        If CollsionCheck(TempTetro, Collisions.BORDER_LEFT) Then
+            Debug.Print("Pass left")
+        End If
+        If CollsionCheck(TempTetro, Collisions.BORDER_RIGHT) Then
+            Debug.Print("Pass right")
+        Else
+        End If
+
         If CollsionCheck(TempTetro) Then
             Dim RandNum As Integer = Rand.Next(0, 1500)
+            Dim Val As Integer = RandNum Mod 7
+            Do Until Not Val = PrevTetro
+                RandNum = Rand.Next(0, 1500)
+                Val = RandNum Mod 7
+            Loop
+            PrevTetro = Val
             TempTetro = New TetroID With {
-                  .TetroCodes = AllTetros(RandNum Mod 7),
+                  .TetroCodes = AllTetros(Val),
                   .XPos = 3,
                   .YPos = 0}
-            TempTetro.InitRor(AllTetColo(RandNum Mod 7))
+            TempTetro.InitRor(AllTetColo(Val))
         End If
         PictureBox1.Refresh()
     End Sub
 
     Private Sub Form1_KeyDown(sender As Object, e As KeyEventArgs) Handles MyBase.KeyDown
-        If e.KeyCode = Keys.D Then
-            TempTetro.XPos += 1
-        ElseIf e.KeyCode = Keys.A Then
-            TempTetro.XPos -= 1
-        ElseIf e.KeyCode = Keys.W Then
-            TempTetro.CurrentRot += 1
-            If TempTetro.CurrentRot > CRot.THREEFOURTHS Then
-                TempTetro.CurrentRot = CRot.ZERO
-            End If
-        ElseIf e.KeyCode = Keys.S Then
-            Count = 2
-        End If
+        Select Case e.KeyCode
+            Case Keys.D
+                TempTetro.XPos += 1
+            Case Keys.A
+                TempTetro.XPos -= 1
+            Case Keys.W
+                TempTetro.CurrentRot += 1
+                If TempTetro.CurrentRot > CRot.THREEFOURTHS Then
+                    TempTetro.CurrentRot = CRot.ZERO
+                End If
+            Case Keys.S
+                Count = 2
+        End Select
+    End Sub
 
+    Private Sub Form1_KeyUp(sender As Object, e As KeyEventArgs) Handles Me.KeyUp
+        Count = 1
     End Sub
 End Class
