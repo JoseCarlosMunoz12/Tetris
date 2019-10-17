@@ -101,45 +101,43 @@
         End Select
         Return False
     End Function
-    Private Function CollsionCheck(Tetroinfo As TetroID, Optional ColType As Collisions = Collisions.GROUND) As Boolean
+    Private Function CollsionCheck(Tetroinfo As TetroID) As Boolean()
+        Dim AllCols(3) As Boolean
         For ii = 0 To 3
             For jj = 0 To 3
                 For Each item In Tetroinfo.TetroCodes
                     If DrawItem(jj, ii, item, Tetroinfo.CurrentRot) Then
-                        Select Case ColType
-                            Case Collisions.GROUND
-                                If CubeForHeight = (ii + TempTetro.YPos) Then
-                                    Return True
-                                End If
-                            Case Collisions.BORDER_LEFT
-                                If jj + Tetroinfo.XPos < 0 Then
-                                    Return True
-                                End If
-                            Case Collisions.BORDER_RIGHT
-                                If jj + Tetroinfo.XPos > 9 Then
-                                    Return True
-                                End If
-                            Case Collisions.TETRO_STACKS
-
-                        End Select
+                        AllCols(0) = jj + Tetroinfo.XPos < 1
+                        AllCols(1) = jj + Tetroinfo.XPos > 9
+                        AllCols(2) = CubeForHeight = (ii + TempTetro.YPos)
+                        AllCols(3) = False
+                        For Each pos In AllCols
+                            If pos Then
+                                Return AllCols
+                            End If
+                        Next
                     End If
                 Next
             Next
         Next
-        Return False
+        Return AllCols
     End Function
     ''event functions and keys
     Private Sub Timer1_Tick(sender As Object, e As EventArgs) Handles Timer1.Tick
         'TempTetro.YPos += Count
-        If CollsionCheck(TempTetro, Collisions.BORDER_LEFT) Then
+        Dim ColTest() As Boolean = CollsionCheck(TempTetro)
+
+        If ColTest(0) Then
             Debug.Print("Pass left")
         End If
-        If CollsionCheck(TempTetro, Collisions.BORDER_RIGHT) Then
+        If ColTest(1) Then
             Debug.Print("Pass right")
         Else
         End If
+        If Not ColTest(3) Then
 
-        If CollsionCheck(TempTetro) Then
+        End If
+        If ColTest(2) Then
             Dim RandNum As Integer = Rand.Next(0, 1500)
             Dim Val As Integer = RandNum Mod 7
             Do Until Not Val = PrevTetro
