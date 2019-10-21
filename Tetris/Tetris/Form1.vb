@@ -28,6 +28,10 @@
         Dim Ypos As Single
         Dim TetroColor As SolidBrush
     End Structure
+    Structure ColInfo
+        Dim Colisions As Boolean
+        Dim CubesLoc() As CubeInfo
+    End Structure
     Dim TempTetro As TetroID
     Dim AllTetros As New List(Of Integer())
     Dim AllStacks As New List(Of CubeInfo)
@@ -43,11 +47,11 @@
         CubeForHeight = PictureBox1.Height / DimensionOfCubes
         ''All tetronimos
         AllTetros.Add({1, 5, 9, 13})  ''Long Item
-        AllTetros.Add({8, 9, 5, 6})   ''Cross to left
-        AllTetros.Add({5, 6, 10, 11}) ''Cross to  Right
+        AllTetros.Add({5, 6, 8, 9})   ''Step to left
+        AllTetros.Add({5, 6, 10, 11}) ''Step to Right
         AllTetros.Add({5, 6, 9, 10})  ''Square
-        AllTetros.Add({1, 5, 9, 10})  ''Left to right
-        AllTetros.Add({2, 6, 10, 9})  ''Left to Left
+        AllTetros.Add({1, 5, 9, 10})  ''L to right
+        AllTetros.Add({2, 6, 9, 10})  ''L to Left
         AllTetros.Add({5, 8, 9, 10})  ''T Item
 
         Dim RandNum As Integer = Rand.Next(0, 1500)
@@ -88,6 +92,7 @@
                         Dim Outline As Pen = New Pen(Br)
                         e.FillRectangle(TetroToDrw.TetroColor, XPos + jj * Dimension, YPos + ii * Dimension, Dimension, Dimension)
                         e.DrawRectangle(Outline, XPos + jj * Dimension, YPos + ii * Dimension, Dimension, Dimension)
+                        Exit For
                     End If
                 Next
             Next
@@ -136,38 +141,63 @@
         Next
         Return AllCols
     End Function
+    Private Sub ResetTetro()
+        Dim RandNum As Integer = Rand.Next(0, 1500)
+        Dim Val As Integer = RandNum Mod 7
+        Do Until Not Val = PrevTetro
+            RandNum = Rand.Next(0, 1500)
+            Val = RandNum Mod 7
+        Loop
+        PrevTetro = Val
+        TempTetro = New TetroID With {
+              .TetroCodes = AllTetros(Val),
+              .XPos = 3,
+              .YPos = 0}
+        TempTetro.InitRor(AllTetColo(Val))
+    End Sub
+    Private Sub AddToList(TetroInfo As TetroID)
+        Dim Count As Integer = 0
+        For ii = 0 To 3
+            For jj = 0 To 3
+                For Each item In TetroInfo.TetroCodes
+                    If DrawItem(jj, ii, item, TetroInfo.CurrentRot) Then
+                        Dim Temp As New CubeInfo With {
+                            .Xpos = jj + TetroInfo.XPos,
+                            .Ypos = ii + TetroInfo.YPos,
+                            .TetroColor = TetroInfo.TetroColor}
+                        AllStacks.Add(Temp)
+                    End If
+                    Count += 1
+                    If Count = 4 Then
+                        Exit Sub
+                    End If
+                Next
+            Next
+
+        Next
+    End Sub
     ''event functions and keys
     Private Sub Timer1_Tick(sender As Object, e As EventArgs) Handles Timer1.Tick
         TempTetro.YPos += Count
         Dim ColTest() As Boolean = CollsionCheck(TempTetro)
 
         If ColTest(0) Then
-            Debug.Print("Pass left")
+            ResetTetro()
         End If
         If ColTest(1) Then
-            Debug.Print("Pass right")
+            ResetTetro()
+
         Else
         End If
-        If Not ColTest(3) Then
+        If ColTest(3) Then
 
         End If
         If ColTest(2) Then
-            Dim RandNum As Integer = Rand.Next(0, 1500)
-            Dim Val As Integer = RandNum Mod 7
-            Do Until Not Val = PrevTetro
-                RandNum = Rand.Next(0, 1500)
-                Val = RandNum Mod 7
-            Loop
-            PrevTetro = Val
-            TempTetro = New TetroID With {
-                  .TetroCodes = AllTetros(Val),
-                  .XPos = 3,
-                  .YPos = 0}
-            TempTetro.InitRor(AllTetColo(Val))
+            ResetTetro()
+
         End If
         PictureBox1.Refresh()
     End Sub
-
     Private Sub Form1_KeyDown(sender As Object, e As KeyEventArgs) Handles MyBase.KeyDown
         Select Case e.KeyCode
             Case Keys.D
@@ -183,7 +213,6 @@
                 Count = 2
         End Select
     End Sub
-
     Private Sub Form1_KeyUp(sender As Object, e As KeyEventArgs) Handles Me.KeyUp
         Count = 1
     End Sub
