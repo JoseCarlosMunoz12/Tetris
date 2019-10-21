@@ -64,7 +64,7 @@
         TempTetro = New TetroID With {
                   .TetroCodes = AllTetros(Val),
                   .XPos = 3,
-                  .YPos = 0}
+                  .YPos = -3}
         TempTetro.InitRor(AllTetColo(Val))
         Timer1.Enabled = True
     End Sub
@@ -158,7 +158,7 @@
         TempTetro = New TetroID With {
               .TetroCodes = AllTetros(Val),
               .XPos = 3,
-              .YPos = 0}
+              .YPos = -3}
         TempTetro.InitRor(AllTetColo(Val))
     End Sub
     Private Sub AddToList(TetroInfo As TetroID)
@@ -202,8 +202,21 @@
             AddToList(TempTetro)
             ResetTetro()
         End If
+        If Not AllStacks.Count = 0 Then
+            If FindCeiling() Then
+                Timer1.Enabled = False
+            End If
+        End If
         PictureBox1.Refresh()
     End Sub
+    Private Function FindCeiling() As Boolean
+        For Each item In AllStacks
+            If item.Ypos = 0 Then
+                Return True
+            End If
+        Next
+        Return False
+    End Function
     Private Sub Form1_KeyDown(sender As Object, e As KeyEventArgs) Handles MyBase.KeyDown
         Select Case e.KeyCode
             Case Keys.D
