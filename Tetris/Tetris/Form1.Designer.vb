@@ -38,7 +38,7 @@ Partial Class Form1
         '
         'Timer1
         '
-        Me.Timer1.Interval = 50
+        Me.Timer1.Interval = 150
         '
         'Form1
         '

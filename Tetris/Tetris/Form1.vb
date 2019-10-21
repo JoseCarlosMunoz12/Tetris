@@ -55,7 +55,7 @@
         AllTetros.Add({5, 8, 9, 10})  ''T Item
 
         Dim RandNum As Integer = Rand.Next(0, 1500)
-        Dim Val As Integer = RandNum Mod 7
+        Dim Val As Integer = 0
         Do Until Not Val = PrevTetro
             RandNum = Rand.Next(0, 1500)
             Val = RandNum Mod 7
@@ -81,6 +81,12 @@
         DrawTetrominos(TempTetro.YPos * DimensionOfCubes,
                        TempTetro.XPos * DimensionOfCubes,
                        DrawInfo, TempTetro, DimensionOfCubes)
+        For Each Cube In AllStacks
+            DrawInfo.FillRectangle(Cube.TetroColor,
+                                   Cube.Xpos * DimensionOfCubes,
+                                   Cube.Ypos * DimensionOfCubes,
+                                   DimensionOfCubes, DimensionOfCubes)
+        Next
     End Sub
     '' Determine Tetro location
     Private Sub DrawTetrominos(YPos As Single, XPos As Single, e As Graphics, TetroToDrw As TetroID, Dimension As Single)
@@ -119,12 +125,12 @@
                     If DrawItem(jj, ii, item, Tetroinfo.CurrentRot) Then
                         AllCols(0) = jj + Tetroinfo.XPos < 0
                         AllCols(1) = jj + Tetroinfo.XPos > 9
-                        AllCols(2) = CubeForHeight = (ii + TempTetro.YPos)
+                        AllCols(2) = CubeForHeight = (ii + TempTetro.YPos + 1)
                         If AllStacks.Count = 0 Then
                             AllCols(3) = False
                         Else
                             For Each Cube In AllStacks
-                                AllCols(3) = Cube.Xpos = jj + TempTetro.XPos And TempTetro.YPos = ii + TempTetro.YPos
+                                AllCols(3) = Cube.Xpos = jj + TempTetro.XPos And Cube.Ypos = ii + TempTetro.YPos + 1
                                 If AllCols(3) Then
                                     Return AllCols
                                 End If
@@ -143,7 +149,7 @@
     End Function
     Private Sub ResetTetro()
         Dim RandNum As Integer = Rand.Next(0, 1500)
-        Dim Val As Integer = RandNum Mod 7
+        Dim Val As Integer = Rand.Next(0, 1500) Mod 7
         Do Until Not Val = PrevTetro
             RandNum = Rand.Next(0, 1500)
             Val = RandNum Mod 7
@@ -166,8 +172,8 @@
                             .Ypos = ii + TetroInfo.YPos,
                             .TetroColor = TetroInfo.TetroColor}
                         AllStacks.Add(Temp)
+                        Count += 1
                     End If
-                    Count += 1
                     If Count = 4 Then
                         Exit Sub
                     End If
@@ -186,15 +192,15 @@
         End If
         If ColTest(1) Then
             ResetTetro()
-
         Else
         End If
-        If ColTest(3) Then
-
-        End If
         If ColTest(2) Then
+            AddToList(TempTetro)
             ResetTetro()
-
+        End If
+        If ColTest(3) Then
+            AddToList(TempTetro)
+            ResetTetro()
         End If
         PictureBox1.Refresh()
     End Sub
